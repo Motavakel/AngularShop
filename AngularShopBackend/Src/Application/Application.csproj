@@ -1,0 +1,61 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Domain\Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Common\Mapping\Resolvers\" />
+    <Folder Include="Common\BehavioursPipes\" />
+    <Folder Include="Contracts\Specification\" />
+    <Folder Include="Dtos\Common\" />
+    <Folder Include="Dtos\Account\" />
+    <Folder Include="Dtos\OrderDto\" />
+    <Folder Include="Dtos\ProductBrands\" />
+    <Folder Include="Dtos\ProductTypes\" />
+    <Folder Include="Dtos\Products\" />
+    <Folder Include="Features\Account\Commands\CreateAddress\" />
+    <Folder Include="Features\Account\Commands\RegisterUser\" />
+    <Folder Include="Features\Account\Queries\GetAddresses\" />
+    <Folder Include="Features\Account\Validators\" />
+    <Folder Include="Features\Basket\Commands\DeleteBasket\" />
+    <Folder Include="Features\Basket\Commands\DeleteItemFromBasket\" />
+    <Folder Include="Features\Basket\Commands\UpdateBasket\" />
+    <Folder Include="Features\Basket\Queries\GetBasketById\" />
+    <Folder Include="Features\Orders\Commands\Create\" />
+    <Folder Include="Features\Orders\Commands\Verify\" />
+    <Folder Include="Features\Orders\Queries\GetOrdersForUser\" />
+    <Folder Include="Features\Orders\Queries\GetOrderByIdForUser\" />
+    <Folder Include="Features\Orders\Queries\GetDeliveryMethodById\" />
+    <Folder Include="Features\ProductBrands\Queries\GetAll\" />
+    <Folder Include="Features\Products\Commands\" />
+    <Folder Include="Features\Products\Validators\" />
+    <Folder Include="Features\ProductTypes\Queries\GetAll\" />
+    <Folder Include="Interfaces\" />
+    <Folder Include="Helpers\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="13.0.1" />
+    <PackageReference Include="FluentValidation" Version="11.11.0" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.11.0" />
+    <PackageReference Include="MediatR" Version="12.4.1" />
+    <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="11.1.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.3.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Http.Features" Version="5.0.17" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity" Version="2.3.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="9.0.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="StackExchange.Redis" Version="2.8.24" />
+    <PackageReference Include="ZarinpalSandbox" Version="2.0.4" />
+  </ItemGroup>
+
+</Project>
