@@ -4,41 +4,27 @@ using System.Diagnostics;
 
 namespace Application.Common.BehavioursPipes;
 
+
+//میدل ور محاسبه گر مدت زمان پاسخ به رکوئست براساس مدیاتور
 public class PerformanceBehaviour<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
     where TRequest : IRequest<TResponse>
 {
-    private readonly ILogger<TRequest> _logger;
-    private readonly Stopwatch _timer;
+    private readonly ILogger<PerformanceBehaviour<TRequest, TResponse>> _logger;
+    private readonly Stopwatch _timer = new Stopwatch();
 
-    public PerformanceBehaviour(ILogger<TRequest> logger)
+    public PerformanceBehaviour(ILogger<PerformanceBehaviour<TRequest, TResponse>> logger)
+        => _logger = logger;
+
+    public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
     {
-        _logger = logger;
-        _timer = new Stopwatch();
-    }
-
-
-    public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next,
-        CancellationToken cancellationToken)
-    {
-        _logger.LogInformation("Performance (3. for Command) (4. for query)"); // temprory
-
         _timer.Start();
-
         var response = await next();
-
         _timer.Stop();
 
-        var elapsedMilliseconds = _timer.ElapsedMilliseconds;
-
-        if (elapsedMilliseconds <= 500) return response;
-
-        var requestName = typeof(TRequest).Name;
-        // var userId = _currentUserService.UserId;
-        // var phoneNumber = _currentUserService.PhoneNumber;
-
-        _logger.LogWarning(
-            "CleanArchitecture Long Running Request: {Name} ({ElapsedMilliseconds} milliseconds) {@UserId} ",
-            requestName, elapsedMilliseconds, request);
+        if (_timer.ElapsedMilliseconds > 500)
+        {
+            _logger.LogWarning("Long Running Request: {Name} ({ElapsedMilliseconds}ms)", typeof(TRequest).Name, _timer.ElapsedMilliseconds);
+        }
 
         return response;
     }

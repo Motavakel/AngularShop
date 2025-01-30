@@ -1,4 +1,5 @@
-﻿using Domain.Entities.Identity;
+﻿using Application.Helpers;
+using Domain.Entities.Identity;
 using Domain.Exceptions;
 using Infrastructure.Persistence.Context;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -24,12 +25,10 @@ public static class IdentityServiceExtension
             .AddRoles<Role>()
             .AddRoleManager<RoleManager<Role>>()
             .AddRoleValidator<RoleValidator<Role>>()
-            .AddEntityFrameworkStores<ApplicationDbContext>();
+            .AddEntityFrameworkStores<ApplicationDbContext>()
+            .AddErrorDescriber<CustomIdentityErrorDescriber>();
 
         services.Configure(ConfigureOptionsIdentity());
-        //policy
-        // services.AddAuthorization();
-        //token setting
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
             {

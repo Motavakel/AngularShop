@@ -1,39 +1,49 @@
 ﻿using Domain.Exceptions;
 using FluentValidation;
 using MediatR;
-using Microsoft.Extensions.Logging;
 
 namespace Application.Common.BehavioursPipes;
 
 public class ValidationBehaviour<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
     where TRequest : IRequest<TResponse>
 {
-    private readonly ILogger<TRequest> _logger;
+
+    //تعریف لیستی از اعتبار سنجی برای هر درخواست 
     private readonly IEnumerable<IValidator<TRequest>> _validators;
 
-    public ValidationBehaviour(IEnumerable<IValidator<TRequest>> validators, ILogger<TRequest> logger)
-    {
-        _validators = validators;
-        _logger = logger;
-    }
+    public ValidationBehaviour(IEnumerable<IValidator<TRequest>> validators)
+        => _validators = validators;
 
-    public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next,
+    public async Task<TResponse> Handle(
+        TRequest request,
+        RequestHandlerDelegate<TResponse> next,
         CancellationToken cancellationToken)
     {
-        if (!_validators.Any()) return await next().ConfigureAwait(false);
-        var context = new ValidationContext<TRequest>(request);
+        //اگر اعتبارسنجی وجود نداشت برو به مرحله بعد 
+        if (!_validators.Any()) return await next();
 
-        var validationResults = await Task.WhenAll(_validators.Select(v =>
-            v.ValidateAsync(context, cancellationToken)));
+        //برای هریک از اعتبارسنجی ها با استفاده از ولیدیت ای سینک و نسخه کامل  درخواست ، اعتبارسنجی رو انجام میدهمی
+        var validationResults = 
+        await Task.WhenAll(_validators
+        .Select(v => v.ValidateAsync(new ValidationContext<TRequest>(request), cancellationToken)));
+        
+        //جداسازی خطاها و پرتاپ استثنا در صورت وجود
+        var failures = validationResults.SelectMany(r => r.Errors).ToList();
 
-        var failures = validationResults
-            .Where(r => r.Errors.Any())
-            .SelectMany(r => r.Errors)
-            .ToList();
+        if (failures.Any()) throw new ValidationEntityException(failures);
 
-        if (failures.Any())
-            throw new ValidationEntityException(failures);
-
-        return await next().ConfigureAwait(false);
+        //رفتن به مرحله بعد
+        return await next();
     }
 }
+
+
+/*
+یک نکته در مورد ورودی دلیگیت 
+همانطور که م یدانیم دلیگیت ها به متد ها اشاره می کنند
+
+در اینجا هم هر متدی که امضای دلیگیت مورد نظر رو رعایت کنه در مرحله بعدی 
+و توسط ترتیبی که ما تعیین می کنیم که در کلاس  کانفیگور سرویس این لایه 
+قایل مشاهده است ، فراخوان و اجرا می شود
+ 
+ */

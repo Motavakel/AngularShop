@@ -45,7 +45,16 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, UserDto>
 
         var user = _mapper.Map<User>(request);
         var result = await _userManager.CreateAsync(user, request.Password);
-        if (!result.Succeeded) throw new BadRequestEntityException(result.Errors.FirstOrDefault()!.Description);
+
+        if (!result.Succeeded)
+        {
+            foreach (var error in result.Errors)
+            {
+                Console.WriteLine(error.Description); 
+            }
+            //throw new BadRequestEntityException(result.Errors.FirstOrDefault()!.Description);
+            throw new BadRequestEntityException(result.Errors.Select(x =>x.Description).ToList());
+        }
 
         var roleResult = await _userManager.AddToRoleAsync(user, RoleType.User.ToString());
         if (!roleResult.Succeeded) throw new BadRequestEntityException(roleResult.Errors.FirstOrDefault()!.Description);

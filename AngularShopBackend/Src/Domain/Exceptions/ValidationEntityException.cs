@@ -8,14 +8,6 @@ public class ValidationEntityException : BaseException
     {
     }
 
-    public ValidationEntityException(string message) : base(message)
-    {
-    }
-
-    public ValidationEntityException() : base("خطایی رخ داده است لطفا مجدد تلاش کنید ")
-    {
-    }
-
     public ValidationEntityException(IEnumerable<ValidationFailure> validationFailures) : base(validationFailures)
     {
         
