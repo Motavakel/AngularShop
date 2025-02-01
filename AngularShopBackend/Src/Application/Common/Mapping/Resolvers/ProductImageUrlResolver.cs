@@ -5,6 +5,8 @@ using Microsoft.Extensions.Configuration;
 
 namespace Application.Common.Mapping.Resolvers;
 
+//استفاده از ری سالور اتومپر
+//برای خواندن تصاویر از دیتاببیس و ترکیب نام با مسیر بک اند 
 public class ProductImageUrlResolver : IValueResolver<Product, ProductDto, string>
 {
     private readonly IConfiguration _configuration;

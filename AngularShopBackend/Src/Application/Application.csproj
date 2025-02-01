@@ -7,6 +7,18 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Dtos\ProductBrands\**" />
+    <Compile Remove="Dtos\ProductTypes\**" />
+    <Compile Remove="Features\Products\Commands\**" />
+    <EmbeddedResource Remove="Dtos\ProductBrands\**" />
+    <EmbeddedResource Remove="Dtos\ProductTypes\**" />
+    <EmbeddedResource Remove="Features\Products\Commands\**" />
+    <None Remove="Dtos\ProductBrands\**" />
+    <None Remove="Dtos\ProductTypes\**" />
+    <None Remove="Features\Products\Commands\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Domain\Domain.csproj" />
   </ItemGroup>
 
@@ -17,8 +29,6 @@
     <Folder Include="Dtos\Common\" />
     <Folder Include="Dtos\Account\" />
     <Folder Include="Dtos\OrderDto\" />
-    <Folder Include="Dtos\ProductBrands\" />
-    <Folder Include="Dtos\ProductTypes\" />
     <Folder Include="Dtos\Products\" />
     <Folder Include="Features\Account\Commands\CreateAddress\" />
     <Folder Include="Features\Account\Commands\RegisterUser\" />
@@ -33,8 +43,6 @@
     <Folder Include="Features\Orders\Queries\GetOrderByIdForUser\" />
     <Folder Include="Features\Orders\Queries\GetDeliveryMethodById\" />
     <Folder Include="Features\ProductBrands\Queries\GetAll\" />
-    <Folder Include="Features\Products\Commands\" />
-    <Folder Include="Features\Products\Validators\" />
     <Folder Include="Features\ProductTypes\Queries\GetAll\" />
     <Folder Include="Interfaces\" />
   </ItemGroup>

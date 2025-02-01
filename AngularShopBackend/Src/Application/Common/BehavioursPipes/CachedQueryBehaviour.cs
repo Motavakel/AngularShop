@@ -11,8 +11,9 @@ namespace Application.Common.BehavioursPipes;
 public class CachedQueryBehaviour<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
     where TRequest : ICacheQuery, IRequest<TResponse>
 {
-    private readonly IDistributedCache _cache; // save data cache
-    private readonly IHttpContextAccessor _httpContextAccessor; //access to request
+    private readonly IDistributedCache _cache;
+    private readonly IHttpContextAccessor _httpContextAccessor;
+    private int _hoursSaveData = 2;
 
     public CachedQueryBehaviour(IDistributedCache cache, IHttpContextAccessor httpContextAccessor)
     {
@@ -20,19 +21,27 @@ public class CachedQueryBehaviour<TRequest, TResponse> : IPipelineBehavior<TRequ
         _httpContextAccessor = httpContextAccessor;
     }
 
-    private Task CreateNewCache(TRequest request, string key, CancellationToken cancellationToken, byte[] serialized)
-    {
-        return _cache.SetAsync(key, serialized,
-            new DistributedCacheEntryOptions
-            {
-                AbsoluteExpirationRelativeToNow = TimeToLive(request)
-            },
-            cancellationToken);
-    }
 
-    private static TimeSpan TimeToLive(TRequest request)
+    public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
     {
-        return new TimeSpan(request.HoursSaveData, 0, 0, 0);
+        TResponse response;
+        var key = GenerateKey();
+
+        var cachedResponse = await _cache.GetAsync(key, cancellationToken);
+
+        if (cachedResponse != null)
+            //تبدیل آرایه ای از بایت  ها به جی سان  و در نهایت دی سریالایز
+            response = JsonConvert.DeserializeObject<TResponse>(Encoding.Default.GetString(cachedResponse));
+        else
+        {
+            response = await next();
+
+            //تبدیل پاسخ(آبجکت) به رشته جی سان و در ادامه تبدیل به آرایه ایی از بایت ها برای ساخت کش توزیع شده
+            var serialized = Encoding.Default.GetBytes(JsonConvert.SerializeObject(response));
+            await CreateNewCache(request, key, cancellationToken, serialized);
+        }
+
+        return response;
     }
 
     private string GenerateKey()
@@ -40,20 +49,15 @@ public class CachedQueryBehaviour<TRequest, TResponse> : IPipelineBehavior<TRequ
         return IdGenerator.GenerateCacheKeyFromRequest(_httpContextAccessor.HttpContext.Request);
     }
 
-    public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
-    {
-        TResponse response;
-        var key = GenerateKey();
-        var cachedResponse = await _cache.GetAsync(key, cancellationToken);
-        if (cachedResponse != null)
-            response = JsonConvert.DeserializeObject<TResponse>(Encoding.Default.GetString(cachedResponse));
-        else
-        {
-            response = await next(); // go to get response
-            var serialized = Encoding.Default.GetBytes(JsonConvert.SerializeObject(response));
-            await CreateNewCache(request, key, cancellationToken, serialized);
-        }
 
-        return response;
+    private Task CreateNewCache(TRequest request, string key, CancellationToken cancellationToken, byte[] serialized)
+    {
+        return _cache.SetAsync(key, serialized,
+            new DistributedCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow =new TimeSpan(_hoursSaveData, 0, 0, 0)
+            },
+            cancellationToken);
     }
+
 }

@@ -9,9 +9,22 @@ public class IdGenerator
     public static string GenerateCacheKeyFromRequest(HttpRequest request)
     {
         var keyBuilder = new StringBuilder();
-        keyBuilder.Append($"{request.Path}"); // save the path
-        foreach (var (key, value) in request.Query.OrderBy(x => x.Key)) //ex : pageId=1,sort = title,type : desc,take = 30
-            keyBuilder.Append($"|{key}-{value}"); // save query
+        keyBuilder.Append($"{request.Path}"); 
+
+        foreach (var (key, value) in request.Query.OrderBy(x => x.Key))
+            keyBuilder.Append($"|{key}-{value}");
+
         return keyBuilder.ToString();
     }
 }
+
+/*
+ یک توضیح
+
+http://localhost:9001/api/products?brandId=2&typeId=5&search=test
+ 
+request.Path = api/products
+request.Query = products?brandId=2&typeId=5&search=test 
+ 
+ 
+ */
