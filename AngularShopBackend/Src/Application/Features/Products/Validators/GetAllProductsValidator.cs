@@ -16,9 +16,6 @@ public class GetAllProductsValidator : AbstractValidator<GetAllProductsQuery>
         RuleFor(x => x.Search)
             .MaximumLength(100).WithMessage("طول عبارت جستجو نباید بیشتر از ۱۰۰ کاراکتر باشد.")
             .When(x => !string.IsNullOrEmpty(x.Search)); 
-  
-        RuleFor(x => x.Sort)
-            .GreaterThan(0).WithMessage("مقدار مرتب‌سازی باید بزرگتر از ۰ باشد.");
 
         RuleFor(x => x.TypeSort)
             .IsInEnum().WithMessage("نوع مرتب‌سازی باید یا 'صعودی' یا 'نزولی' باشد.");

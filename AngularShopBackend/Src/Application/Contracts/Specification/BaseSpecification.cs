@@ -5,7 +5,6 @@ namespace Application.Contracts.Specification;
 
 public class BaseSpecification<T> : ISpecification<T> where T : BaseEntity
 {
-    //x=>x.Title == title && x.CreateDate > DateTime.Now || &&
     public Expression<Func<T, object>> OrderBy { get; private set; }
     public Expression<Func<T, object>> OrderByDesc { get; private set; }
     public int Take { get; set; }

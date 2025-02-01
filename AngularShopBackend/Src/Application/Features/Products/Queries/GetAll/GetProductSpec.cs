@@ -10,46 +10,33 @@ public class GetProductSpec : BaseSpecification<Product>
     public GetProductSpec(GetAllProductsQuery specParams) : base(Expression.ExpressionSpec(specParams))
     {
         //include
+
         AddInclude(x => x.ProductBrand);
         AddInclude(x => x.ProductType);
+
         //sort
-        if (specParams.TypeSort == TypeSort.Desc)
-            switch (specParams.Sort)
-            {
-                case 1:
-                    AddOrderByDesc(x => x.Title);
-                    break;
-                case 2:
-                    AddOrderByDesc(x => x.ProductType.Title);
-                    break;
-                case 3:
-                    AddOrderByDesc(x => x.Price);
-                    break;
-                default:
-                    AddOrderByDesc(x => x.Title);
-                    break;
-            }
-        else
-            switch (specParams.Sort)
-            {
-                case 1:
-                    AddOrderBy(x => x.Title);
-                    break;
-                case 2:
-                    AddOrderBy(x => x.ProductType.Title);
-                    break;
-                case 3:
-                    AddOrderBy(x => x.Price);
-                    break;
-                default:
-                    AddOrderBy(x => x.Title);
-                    break;
-            }
+        switch (specParams.TypeSort)
+        {
+            case SortOptions.Newest:
+                AddOrderByDesc(x => x.Id); 
+                break;
+            case SortOptions.PriceHighToLow:
+                AddOrderByDesc(x => x.Price);
+                break;
+            case SortOptions.PriceLowToHigh:
+                AddOrderBy(x => x.Price);
+                break;
+            case SortOptions.NameAToZ:
+                AddOrderBy(x => x.Title);
+                break;
+            default:
+                AddOrderByDesc(x => x.Id);
+                break;
+        }
+
         //pagination
         ApplyPaging(specParams.PageSize * (specParams.PageIndex - 1), specParams.PageSize, true);
     }
-
-
     public GetProductSpec(int id) : base(x => x.Id == id)
     {
         AddInclude(x => x.ProductBrand);
@@ -65,6 +52,10 @@ public class ProductsCountSpec : BaseSpecification<Product>
     }
 }
 
+
+
+//با توجه به اینکه در بخش بیس فراخوانی میشه، باید ابتدا مقدار این بخش دریافت وبعد به سازنده والد موردنظر منتقل شود
+//پس  به محض ورود این فیلتر اعمال می شود، تا براساس نتیجه فیلتر محصولات درسایر جزئیات هم بروز شوند 
 public class Expression
 {
     public static Expression<Func<Product, bool>> ExpressionSpec(GetAllProductsQuery specParams)

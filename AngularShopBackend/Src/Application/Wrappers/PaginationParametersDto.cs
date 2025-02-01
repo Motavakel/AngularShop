@@ -2,19 +2,20 @@
 
 public abstract class PaginationParametersDto
 {
-    private const int _MaxPageSize = 50;
-    private int _PageIndex { get; set; } = 1;
-    private int _PageSize { get; set; } = 12;
+    private const int _MaxPageSize = 20;
+
+    private int _pageIndex = 1;
+    private int _pageSize = 12;
 
     public int PageSize
     {
-        get => _PageSize;
-        set => _PageSize = value > _MaxPageSize ? _MaxPageSize : value;
+        get => _pageSize;
+        set => _pageSize = Math.Min(value, _MaxPageSize);
     }
 
     public int PageIndex
     {
-        get => _PageIndex;
-        set => _PageIndex = value <= 0 ? 1 : value;
+        get => _pageIndex;
+        set => _pageIndex = Math.Max(value, 1);
     }
 }

@@ -2,19 +2,15 @@
 
 public abstract class RequestParametersBasic : PaginationParametersDto
 {
-    private string _Search { get; set; }
-    public TypeSort TypeSort { get; set; } = TypeSort.Desc;
-    public int Sort { get; set; } = 1;
-
-    public string Search
-    {
-        get => _Search;
-        set => _Search = value?.ToLower();
-    }
+    
+    public string Search {  get; set; }
+    public SortOptions TypeSort { get; set; } = SortOptions.Newest;
 }
 
-public enum TypeSort
+public enum SortOptions
 {
-    Desc = 1,
-    Asc
+    Newest = 1,       // جدیدترین ها
+    PriceHighToLow,   // گران‌ترین
+    PriceLowToHigh,   // ارزان‌ترین
+    NameAToZ,         // براساس الفبا
 }
