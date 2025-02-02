@@ -84,7 +84,7 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Ord
         var orderItems = new List<OrderItem>();
         foreach (var item in basket.Items)
         {
-            var itemOrder = new ProductItemOrdered(item.Id, item.Product, item.Brand, item.Type, item.PictureUrl);
+            var itemOrder = new ProductItemOrdered(item.Id, item.ProductTitle, item.Brand, item.Type, item.PictureUrl);
             orderItems.Add(new OrderItem()
             {
                 ItemOrdered = itemOrder,

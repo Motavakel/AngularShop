@@ -4,7 +4,7 @@ namespace Domain.Entities.BasketEntity;
 
 public class CustomerBasketItem : BaseEntity
 {
-    public string Product { get; set; }
+    public string ProductTitle { get; set; }
     public string Type { get; set; }
     public string Brand { get; set; }
     public int Quantity { get; set; }

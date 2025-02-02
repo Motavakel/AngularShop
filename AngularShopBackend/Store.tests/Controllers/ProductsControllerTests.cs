@@ -21,7 +21,7 @@ public class ProductsControllerTests
         _controller = new ProductsController();
 
         var serviceProviderMock = new Mock<IServiceProvider>();
-        serviceProviderMock.Setup(sp => sp.GetService(typeof(ISender))).Returns(_mockMediator.Object);
+        serviceProviderMock.Setup(sp => sp.GetService(typeof(IMediator))).Returns(_mockMediator.Object);
 
         var httpContextMock = new DefaultHttpContext { RequestServices = serviceProviderMock.Object };
         _controller.ControllerContext = new ControllerContext { HttpContext = httpContextMock };
@@ -46,18 +46,15 @@ public class ProductsControllerTests
                 ProductType = "شهری",
                 ProductBrand = "المپیا",
                 Description = "دوچرخه‌ها بهترین همراه ماجراجویی در خیابان‌های شهر و جاده‌های کوهستانی‌اند، بی‌نیاز از سوخت و پر از آزادی.",
-                IsActive = true,
                 Summary = ""
             }
             }
         );
 
+        // Act
         _mockMediator.Setup(m => m.Send(It.IsAny<GetAllProductsQuery>(), It.IsAny<CancellationToken>()))
                      .ReturnsAsync(mockResponse);
-
         var request = new GetAllProductsQuery();
-
-        // Act
         var result = await _controller.Get(request, CancellationToken.None);
 
         // Assert
@@ -70,5 +67,40 @@ public class ProductsControllerTests
         Assert.Equal("دوچرخه دینو مدل 27.5", returnValue.Result.First().Title);
     }
 
+    [Fact]
+    public async Task Get_Product()
+    {
+        // Arrange
+        var productResponse = new ProductDto
+        {
+            Id = 11,
+            Title = "دوچرخه دینو مدل 27.5",
+            Price = 17800000,
+            PictureUrl = "http://localhost:9001/images/products/im11.webp",
+            ProductType = "شهری",
+            ProductBrand = "المپیا",
+            Description = "دوچرخه‌ها بهترین همراه ماجراجویی در خیابان‌های شهر و جاده‌های کوهستانی‌اند، بی‌نیاز از سوخت و پر از آزادی.",
+            Summary = ""
+        };
 
+        // Act
+        _mockMediator.Setup(m => m.Send(It.IsAny<GetProductQuery>(), It.IsAny<CancellationToken>()))
+             .ReturnsAsync(productResponse);
+
+        var request = 11 ;
+        var result = await _controller.Get(request, CancellationToken.None);
+
+        // Asser
+        var okResult = Assert.IsType<OkObjectResult>(result.Result);
+        var returnValue = Assert.IsType<ProductDto>(okResult.Value);
+        Assert.Equal(productResponse.Id, returnValue.Id);
+        Assert.Equal(productResponse.Title, returnValue.Title);
+        Assert.Equal(productResponse.Price, returnValue.Price);
+        Assert.Equal(productResponse.PictureUrl, returnValue.PictureUrl);
+        Assert.Equal(productResponse.ProductType, returnValue.ProductType);
+        Assert.Equal(productResponse.ProductBrand, returnValue.ProductBrand);
+        Assert.Equal(productResponse.Description, returnValue.Description);
+        Assert.Equal(productResponse.Summary, returnValue.Summary);
+
+    }
 }

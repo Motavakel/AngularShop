@@ -56,8 +56,6 @@ builder.Services.AddSingleton<ICurrentUserService, CurrentUserUserService>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddDistributedMemoryCache();
 
-
-
 var app = builder.Build();
 
 app.UseMiddleware<MiddlewareExceptionHandler>();
