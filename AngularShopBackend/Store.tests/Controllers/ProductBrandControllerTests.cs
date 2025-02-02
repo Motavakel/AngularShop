@@ -20,10 +20,14 @@ public class ProductBrandControllerTests
         _mediatorMock = new Mock<IMediator>();
         _controller = new ProductBrandController();
 
+      
         var serviceProviderMock = new Mock<IServiceProvider>();
-        serviceProviderMock.Setup(sp => sp.GetService(typeof(ISender))).Returns(_mediatorMock.Object);
+        
+       
+        serviceProviderMock.Setup(sp => sp.GetService(typeof(IMediator))).Returns(_mediatorMock.Object);
 
         var httpContextMock = new DefaultHttpContext { RequestServices = serviceProviderMock.Object };
+
         _controller.ControllerContext = new ControllerContext { HttpContext = httpContextMock };
     }
 
