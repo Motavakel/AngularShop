@@ -28,7 +28,6 @@
     <Folder Include="Contracts\Specification\" />
     <Folder Include="Dtos\Common\" />
     <Folder Include="Dtos\Account\" />
-    <Folder Include="Dtos\ProductBrandDto\" />
     <Folder Include="Dtos\OrderDto\" />
     <Folder Include="Dtos\Products\" />
     <Folder Include="Features\Account\Commands\CreateAddress\" />

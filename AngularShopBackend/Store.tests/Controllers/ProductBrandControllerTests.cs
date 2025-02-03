@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Moq;
 using Web.Controllers;
 using FluentAssertions;
+using Application.Dtos.ProductBrandDto;
 
 
 namespace Store.tests.Controllers;
@@ -35,27 +36,29 @@ public class ProductBrandControllerTests
     public async Task Get_ShouldReturnListOfProductBrands_WhenCalled()
     {
         //ایجاد لیست پاسخ
-        var brands = new List<ProductBrand>
+        var brands = new List<ProductBrandDto>
         {
-            new ProductBrand { Id = 1, Title = "BrandA" },
-            new ProductBrand { Id = 2, Title = "BrandB" }
+            new ProductBrandDto { Id = 1, Title = "لاودیس" },
+            new ProductBrandDto { Id = 2, Title = "جیمز" },
+            new ProductBrandDto { Id = 2, Title = "المپیا" }
         };
 
 
-        //در اینجا هم ارسال در خواست به سرویس را توسط مدیاتور شبیه سازی میشه
         _mediatorMock
             .Setup(m => m.Send(It.IsAny<GetAllProductBrandQuery>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(brands);
 
         var result = await _controller.Get(CancellationToken.None);
-        var actionResult = Assert.IsType<ActionResult<IEnumerable<ProductBrand>>>(result);
+        var actionResult = Assert.IsType<ActionResult<IEnumerable<ProductBrandDto>>>(result);
+
         var okResult = Assert.IsType<OkObjectResult>(actionResult.Result);
         
 
-        var returnedBrands = Assert.IsType<List<ProductBrand>>(okResult.Value);
+        var returnedBrands = Assert.IsType<List<ProductBrandDto>>(okResult.Value);
 
-        returnedBrands.Should().HaveCount(2);
-        returnedBrands.Should().Contain(b => b.Title == "BrandA");
-        returnedBrands.Should().Contain(b => b.Title == "BrandB");
+        returnedBrands.Should().HaveCount(3);
+        returnedBrands.Should().Contain(b => b.Title == "لاودیس");
+        returnedBrands.Should().Contain(b => b.Title == "جیمز");
+        returnedBrands.Should().Contain(b => b.Title == "المپیا");
     }
 }
