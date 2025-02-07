@@ -30,9 +30,9 @@ public class MiddlewareExceptionHandler
     {
         context.Response.ContentType = "application/json";
 
-         var apiResponse = new ApiToReturn(500, exception.Message);
+        ApiToReturn apiResponse = null!;
 
-         switch (exception)
+        switch (exception)
         {
             case NotFoundEntityException notFoundException:
                 context.Response.StatusCode = (int)HttpStatusCode.NotFound;
@@ -45,6 +45,10 @@ public class MiddlewareExceptionHandler
             case ValidationEntityException validationEntityException:
                 context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
                 apiResponse = new ApiToReturn(400, validationEntityException.Messages ?? new List<string> { validationEntityException.Message });
+                break;
+            default:
+                context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                apiResponse = new ApiToReturn(500, exception.Message);
                 break;
         }
 
