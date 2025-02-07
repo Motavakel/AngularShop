@@ -14,8 +14,6 @@ public class UnitOWork : IUnitOWork
         _context = context;
     }
 
-    public DbContext Context => _context;
-
     public async Task<int> Save(CancellationToken cancellationToken)
     {
         return await _context.SaveChangesAsync(cancellationToken);

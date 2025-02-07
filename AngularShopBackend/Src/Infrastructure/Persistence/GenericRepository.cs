@@ -1,6 +1,7 @@
 ﻿using Application.Contracts;
 using Application.Contracts.Specification;
 using Domain.Entities.Base;
+using Domain.Entities.Order;
 using Infrastructure.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
@@ -29,23 +30,21 @@ public class GenericRepository<T> : IGenericRepository<T> where T : BaseEntity
         return await _dbSet.ToListAsync(cancellationToken);
     }
 
-    public async Task<T> AddAsync(T entity, CancellationToken cancellationToken)
+    public async Task AddAsync(T dto, CancellationToken cancellationToken)
     {
-        await _dbSet.AddAsync(entity, cancellationToken);
-        return await Task.FromResult(entity);
+        await _dbSet.AddAsync(dto, cancellationToken);
     }
 
-    public Task<T> UpdateAsync(T entity)
+    public void Update(T entity)
     {
-        _context.Entry(entity).State = EntityState.Modified;
-        return Task.FromResult(entity);
+        _dbSet.Update(entity);
     }
 
     public async Task Delete(T entity, CancellationToken cancellationToken)
     {
         var record = await GetByIdAsync(entity.Id, cancellationToken);
         record.IsDelete = true;
-        await UpdateAsync(entity);
+        Update(entity);
     }
 
     public async Task<bool> AnyAsync(Expression<Func<T, bool>> expression, CancellationToken cancellationToken)
@@ -78,7 +77,7 @@ public class GenericRepository<T> : IGenericRepository<T> where T : BaseEntity
         return await ApplySpecification(spec).CountAsync(cancellationToken);
     }
 
-    public async Task<List<T>> ToListAsync(CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<T>> ToListAsync(CancellationToken cancellationToken)
     {
         return await _dbSet.ToListAsync(cancellationToken);
     }
@@ -88,3 +87,7 @@ public class GenericRepository<T> : IGenericRepository<T> where T : BaseEntity
         return SpecificationEvaluator<T>.GetQuery(_dbSet.AsQueryable(), spec);
     }
 }
+
+
+
+

@@ -14,22 +14,23 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, UserDto>
 {
     private readonly IMapper _mapper;
     private readonly SignInManager<User> _signInManager;
-    private readonly IUnitOWork _unitOWork;
     private readonly ITokenService _tokenService;
+    private readonly UserManager<User> _userManager;
 
-    public LoginCommandHandler(IMapper mapper, SignInManager<User> signInManager, IUnitOWork unitOWork,
+    public LoginCommandHandler(IMapper mapper, SignInManager<User> signInManager, UserManager<User> userManager,
         ITokenService tokenService)
     {
         _mapper = mapper;
         _signInManager = signInManager;
-        _unitOWork = unitOWork;
         _tokenService = tokenService;
+        _userManager = userManager;
     }
 
     public async Task<UserDto> Handle(LoginCommand request, CancellationToken cancellationToken)
     {
-        var user = await _unitOWork.Context.Set<User>()
-            .FirstOrDefaultAsync(x => x.PhoneNumber == request.PhoneNumber, cancellationToken);
+        var user = await _userManager.Users
+                 .FirstOrDefaultAsync(x => x.PhoneNumber == request.PhoneNumber, cancellationToken);
+
 
         if (user == null) throw new BadRequestEntityException("چنین کاربری یافت نشد لطفا ابتدا در سایت ثبت نام کنید");
         var result = await _signInManager.CheckPasswordSignInAsync(user, request.Password, false);

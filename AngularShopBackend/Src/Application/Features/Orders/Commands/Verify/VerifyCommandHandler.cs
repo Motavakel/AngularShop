@@ -1,4 +1,5 @@
 ﻿using Application.Contracts;
+using Application.Features.Products.Queries.GetAll;
 using Domain.Entities.Order;
 using Domain.Enums;
 using Domain.Exceptions;
@@ -35,10 +36,17 @@ public class VerifyCommandHandler : IRequestHandler<VerifyCommand, string>
     public async Task<string> Handle(VerifyCommand request, CancellationToken cancellationToken)
     {
         //1. order : authority
-        var order = await _uow.Context.Set<Order>()
+        /*var order = await _uow.Context.Set<Order>()
             .Include(x => x.DeliveryMethod)
             .Where(x => x.Authority == request.Authority)
-            .SingleOrDefaultAsync(cancellationToken);
+            .SingleOrDefaultAsync(cancellationToken);*/
+
+
+        var orderSpec = new OrderWithDeliverySpecification(request.Authority);
+        var order = await _uow.Repository<Order>().GetEntityWithSpec(orderSpec, cancellationToken);
+
+
+
         if (order == null) throw new BadRequestEntityException("سفارش شما یافت نشد مجدد تلاش کنید");
         //2. portal : orderId
         var portal = await _uow.Repository<Portal>().Where(x => x.OrderId == order.Id)
@@ -49,10 +57,10 @@ public class VerifyCommandHandler : IRequestHandler<VerifyCommand, string>
         {
             //update order
             order.OrderStatus = OrderStatus.Cancelled;
-            await _uow.Repository<Order>().UpdateAsync(order);
+            _uow.Repository<Order>().Update(order);
             //update portal
             portal.Status = PaymentDataStatus.Canceled;
-            await _uow.Repository<Portal>().UpdateAsync(portal);
+            _uow.Repository<Portal>().Update(portal);
             //save changes
             await _uow.Save(cancellationToken);
             return _configuration["Order:CallBackCanceled"];
@@ -68,11 +76,11 @@ public class VerifyCommandHandler : IRequestHandler<VerifyCommand, string>
             //update order
             order.IsFinally = true;
             order.OrderStatus = OrderStatus.Pending;
-            await _uow.Repository<Order>().UpdateAsync(order);
+            _uow.Repository<Order>().Update(order);
             //update portal
             portal.ReferenceId = result.RefId.ToString();
             portal.Status = PaymentDataStatus.Success;
-            await _uow.Repository<Portal>().UpdateAsync(portal);
+            _uow.Repository<Portal>().Update(portal);
             await _uow.Save(cancellationToken);
             //redirect
             return _configuration["Order:CallBackSuccess"];
@@ -81,10 +89,10 @@ public class VerifyCommandHandler : IRequestHandler<VerifyCommand, string>
         //failed , unsuccessful
         //update order
         order.OrderStatus = OrderStatus.PaymentFailed;
-        await _uow.Repository<Order>().UpdateAsync(order);
+        _uow.Repository<Order>().Update(order);
         //update portal 
         portal.Status = PaymentDataStatus.Failed;
-        await _uow.Repository<Portal>().UpdateAsync(portal);
+        _uow.Repository<Portal>().Update(portal);
         await _uow.Save(cancellationToken);
         return _configuration["Order:CallBackFailed"];
     }

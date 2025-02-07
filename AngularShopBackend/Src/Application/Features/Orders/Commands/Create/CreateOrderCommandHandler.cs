@@ -104,9 +104,13 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Ord
             Authority = payment.Authority,
             CreatedBy = _currentUserService.UserId
         };
-        var result = await _unitOWork.Repository<Order>().AddAsync(order, cancellationToken);
-        if (result == null) throw new BadRequestEntityException("سفارش شما با شکست روبرو شد لطفا مجدد تلاش کنید");
+        await _unitOWork.Repository<Order>().AddAsync(order, cancellationToken);
         await _unitOWork.Save(cancellationToken);
+
+        var result = await _unitOWork.Repository<Order>().GetByIdAsync(order.Id,cancellationToken);
+        
+        if (result == null) throw new BadRequestEntityException("سفارش شما با شکست روبرو شد لطفا مجدد تلاش کنید");
+
         return result;
     }
 }

@@ -4,11 +4,11 @@ using MediatR;
 
 namespace Application.Features.Orders.Queries.GetDeliveryMethods;
 
-public class GetDeliveryMethodsQuery : IRequest<List<DeliveryMethod>>
+public class GetDeliveryMethodsQuery : IRequest<IReadOnlyList<DeliveryMethod>>
 {
 }
 
-public class GetDeliveryMethodsQueryHandler : IRequestHandler<GetDeliveryMethodsQuery, List<DeliveryMethod>>
+public class GetDeliveryMethodsQueryHandler : IRequestHandler<GetDeliveryMethodsQuery, IReadOnlyList<DeliveryMethod>>
 {
     private readonly IUnitOWork _uow;
 
@@ -17,7 +17,7 @@ public class GetDeliveryMethodsQueryHandler : IRequestHandler<GetDeliveryMethods
         _uow = uow;
     }
 
-    public async Task<List<DeliveryMethod>> Handle(GetDeliveryMethodsQuery request, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<DeliveryMethod>> Handle(GetDeliveryMethodsQuery request, CancellationToken cancellationToken)
     {
         return await _uow.Repository<DeliveryMethod>().ToListAsync(cancellationToken);
     }
