@@ -5,6 +5,6 @@ namespace Application.Contracts;
 
 public interface IUnitOWork
 {
-    Task<int> Save(CancellationToken cancellationToken);
+    Task<int> SaveAsync(CancellationToken cancellationToken);
     IGenericRepository<T> Repository<T>() where T : BaseEntity;
 }

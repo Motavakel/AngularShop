@@ -5,14 +5,17 @@ namespace Application.Contracts.Specification;
 
 public class BaseSpecification<T> : ISpecification<T> where T : BaseEntity
 {
-    public Expression<Func<T, object>> OrderBy { get; private set; }
-    public Expression<Func<T, object>> OrderByDesc { get; private set; }
     public int Take { get; set; }
     public int Skip { get; set; }
     public bool IsPagingEnabled { get; set; }
 
+    //برای اعمال تغییر در داخل کلاس
+    public Expression<Func<T, object>> OrderBy { get; private set; }
+    public Expression<Func<T, object>> OrderByDesc { get; private set; }
+    //برای اعمال تغییر فقط در سازنده
     public Expression<Func<T, bool>> Predicate { get; }
     public List<Expression<Func<T, object>>> Includes { get; } = new();
+
 
     public BaseSpecification()
     {

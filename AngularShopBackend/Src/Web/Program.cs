@@ -1,4 +1,5 @@
-﻿using Application;
+﻿#region Usings
+using Application;
 using Application.Contracts;
 using Application.Interfaces;
 using Infrastructure.Persistence;
@@ -6,10 +7,12 @@ using Infrastructure.Persistence.Context;
 using Infrastructure.Persistence.SeedData;
 using Infrastructure.Security;
 using Infrastructure.Services;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using StackExchange.Redis;
 using Web.Extensions;
 using Web.Services;
+#endregion
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -53,12 +56,11 @@ builder.Services.AddCors(options =>
 });
 #endregion
 
-builder.Services.AddSingleton<ICurrentUserService, CurrentUserUserService>();
+builder.Services.AddSingleton<ICurrentUserService, CurrentUserService>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddDistributedMemoryCache();
 
 var app = builder.Build();
-
 app.UseMiddleware<MiddlewareExceptionHandler>();
 
 #region Seed Fake Data

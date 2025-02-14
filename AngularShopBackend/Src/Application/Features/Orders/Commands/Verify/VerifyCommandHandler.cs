@@ -1,99 +1,145 @@
 ﻿using Application.Contracts;
-using Application.Features.Products.Queries.GetAll;
+using Application.Dtos.OrderDto;
+using AutoMapper;
 using Domain.Entities.Order;
 using Domain.Enums;
-using Domain.Exceptions;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using ZarinpalSandbox;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
+using RestSharp;
 
 namespace Application.Features.Orders.Commands.Verify;
 
-public class VerifyCommand : IRequest<string>
+public class VerifyCommand : IRequest<OrderDto>
 {
     public string Authority { get; set; }
-    public string Status { get; set; }
+    public string PaymentStatus { get; set; }
+    public string invoiceID { get; set; }
 
-    public VerifyCommand(string authority, string status)
+    public VerifyCommand(string authority, string InvoiceID, string paymentStatus)
     {
         Authority = authority;
-        Status = status;
+        PaymentStatus = paymentStatus;
+        invoiceID = InvoiceID;
     }
 }
 
-public class VerifyCommandHandler : IRequestHandler<VerifyCommand, string>
+public class VerifyCommandHandler : IRequestHandler<VerifyCommand,OrderDto>
 {
     private readonly IUnitOWork _uow;
     private readonly IConfiguration _configuration;
+    private readonly IMapper _mapper;
 
-    public VerifyCommandHandler(IUnitOWork uow, IConfiguration configuration)
+    public VerifyCommandHandler(
+        IUnitOWork uow,
+        IConfiguration configuration,
+        IMapper mapper,
+        ILogger<VerifyCommandHandler> logger) 
     {
         _uow = uow;
         _configuration = configuration;
+        _mapper = mapper;
     }
 
-    public async Task<string> Handle(VerifyCommand request, CancellationToken cancellationToken)
+    public async Task<OrderDto> Handle(
+        VerifyCommand request,
+        CancellationToken cancellationToken)
     {
-        //1. order : authority
-        /*var order = await _uow.Context.Set<Order>()
-            .Include(x => x.DeliveryMethod)
-            .Where(x => x.Authority == request.Authority)
-            .SingleOrDefaultAsync(cancellationToken);*/
+        var spec = new OrderByAuthoritySpecification(request.Authority);
+        var order = await _uow.Repository<Order>().GetEntityWithSpec(spec, cancellationToken);
+        int amount = order.SubTotal * 10;
 
-
-        var orderSpec = new OrderWithDeliverySpecification(request.Authority);
-        var order = await _uow.Repository<Order>().GetEntityWithSpec(orderSpec, cancellationToken);
-
-
-
-        if (order == null) throw new BadRequestEntityException("سفارش شما یافت نشد مجدد تلاش کنید");
-        //2. portal : orderId
-        var portal = await _uow.Repository<Portal>().Where(x => x.OrderId == order.Id)
-            .SingleOrDefaultAsync(cancellationToken);
-        if (portal == null) throw new BadRequestEntityException("پرداخت شما مشکل دارد لطفا با پشتیبانی تماس بگیرید");
-        //3. cancel submitted
-        if (request.Status != "OK")
+        if (order == null)
         {
-            //update order
-            order.OrderStatus = OrderStatus.Cancelled;
-            _uow.Repository<Order>().Update(order);
-            //update portal
-            portal.Status = PaymentDataStatus.Canceled;
-            _uow.Repository<Portal>().Update(portal);
-            //save changes
-            await _uow.Save(cancellationToken);
-            return _configuration["Order:CallBackCanceled"];
+            return new OrderDto
+            {
+                OrderStatus = OrderStatus.PaymentFailed,
+            };
         }
 
-        //4. payment verification=> get-way
-        var amount = (int)order.GetOriginalTotal();
-        var payment = new Payment(amount);
-        var result = await payment.Verification(request.Authority); //status = 100 => success
-        if (result.Status == 100)
+        var paymentResult = await CheckPayment(amount, request.Authority);
+        if (request.PaymentStatus == "NOK" || !paymentResult.StartsWith("پرداخت موفق"))
         {
-            //success
-            //update order
-            order.IsFinally = true;
-            order.OrderStatus = OrderStatus.Pending;
-            _uow.Repository<Order>().Update(order);
-            //update portal
-            portal.ReferenceId = result.RefId.ToString();
-            portal.Status = PaymentDataStatus.Success;
-            _uow.Repository<Portal>().Update(portal);
-            await _uow.Save(cancellationToken);
-            //redirect
-            return _configuration["Order:CallBackSuccess"];
+
+            order.PaymentDate = DateTime.UtcNow;
+            order.OrderStatus = OrderStatus.PaymentFailed;
+            await _uow.SaveAsync(cancellationToken);
+
+            return new OrderDto
+            {
+                OrderStatus = OrderStatus.PaymentFailed,
+                PaymentDate = DateTime.UtcNow,
+            };
         }
 
-        //failed , unsuccessful
-        //update order
-        order.OrderStatus = OrderStatus.PaymentFailed;
-        _uow.Repository<Order>().Update(order);
-        //update portal 
-        portal.Status = PaymentDataStatus.Failed;
-        _uow.Repository<Portal>().Update(portal);
-        await _uow.Save(cancellationToken);
-        return _configuration["Order:CallBackFailed"];
+        order.PaymentDate = DateTime.UtcNow;
+        order.OrderStatus = OrderStatus.PaymentSuccess;
+        await _uow.SaveAsync(cancellationToken);
+
+        return _mapper.Map<OrderDto>(order);
     }
+
+    public async Task<string> CheckPayment(int amount, string authority)
+    {
+        try
+        {
+            string merchant = "test";
+
+            var client = new RestClient(new RestClientOptions { Timeout = TimeSpan.FromSeconds(30) });
+            var request = new RestRequest("https://api.novinopay.com/payment/ipg/v2/verification", Method.Post);
+            request.AddHeader("Content-Type", "application/json");
+            request.AddHeader("Accept", "application/json");
+
+            var body = new
+            {
+                merchant_id = merchant,
+                amount = amount,
+                authority = authority
+            };
+
+            request.AddJsonBody(body);
+
+            RestResponse response = await client.ExecuteAsync(request).ConfigureAwait(false);
+
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return $"خطا در برقراری ارتباط با درگاه: {response.StatusCode} - {response.ErrorMessage}";
+            }
+
+            var result = JsonConvert.DeserializeObject<PaymentResponse>(response.Content);
+
+            if (result == null || result.status != "100")
+            {
+                return $"پرداخت تأیید نشد: {result?.message ?? "پاسخ نامعتبر از درگاه"}";
+            }
+
+            return $"پرداخت موفق - شماره پیگیری: {result.data.ref_id}";
+        }
+        catch (Exception ex)
+        {
+            return $"خطای سیستمی رخ داده: {ex.Message}";
+        }
+    }
+}
+
+
+
+public class PaymentResponse
+{
+    public string status { get; set; }
+    public string message { get; set; }
+    public PaymentData data { get; set; }
+}
+
+public class PaymentData
+{
+    public long trans_id { get; set; }
+    public string ref_id { get; set; }
+    public string authority { get; set; }
+    public string card_pan { get; set; }
+    public int amount { get; set; }
+    public string buyer_ip { get; set; }
+    public long payment_time { get; set; }
 }

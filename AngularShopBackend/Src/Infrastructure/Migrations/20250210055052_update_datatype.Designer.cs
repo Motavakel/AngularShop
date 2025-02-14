@@ -4,6 +4,7 @@ using Infrastructure.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250210055052_update_datatype")]
+    partial class update_datatype
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -241,9 +244,6 @@ namespace Infrastructure.Migrations
                     b.Property<int?>("DeliveryMethodId")
                         .HasColumnType("int");
 
-                    b.Property<string>("InvoiceNumber")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<bool>("IsDelete")
                         .HasColumnType("bit");
 
@@ -259,9 +259,6 @@ namespace Infrastructure.Migrations
                     b.Property<int>("OrderStatus")
                         .HasColumnType("int");
 
-                    b.Property<DateTime?>("PaymentDate")
-                        .HasColumnType("datetime2");
-
                     b.Property<int>("PortalType")
                         .HasColumnType("int");
 
@@ -270,9 +267,6 @@ namespace Infrastructure.Migrations
 
                     b.Property<string>("TrackingCode")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<long>("TransactionId")
-                        .HasColumnType("bigint");
 
                     b.HasKey("Id");
 
@@ -308,6 +302,43 @@ namespace Infrastructure.Migrations
                     b.HasIndex("OrderId");
 
                     b.ToTable("OrderItem");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Order.Portal", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<long>("Amount")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Gateway")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsDelete")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("OrderId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ReferenceId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrderId")
+                        .IsUnique();
+
+                    b.ToTable("Portal");
                 });
 
             modelBuilder.Entity("Domain.Entities.ProductEntity.Product", b =>
@@ -659,6 +690,17 @@ namespace Infrastructure.Migrations
                     b.Navigation("ItemOrdered");
                 });
 
+            modelBuilder.Entity("Domain.Entities.Order.Portal", b =>
+                {
+                    b.HasOne("Domain.Entities.Order.Order", "Order")
+                        .WithOne("Portal")
+                        .HasForeignKey("Domain.Entities.Order.Portal", "OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Order");
+                });
+
             modelBuilder.Entity("Domain.Entities.ProductEntity.Product", b =>
                 {
                     b.HasOne("Domain.Entities.Identity.User", "User")
@@ -753,6 +795,8 @@ namespace Infrastructure.Migrations
             modelBuilder.Entity("Domain.Entities.Order.Order", b =>
                 {
                     b.Navigation("OrderItems");
+
+                    b.Navigation("Portal");
                 });
 #pragma warning restore 612, 618
         }

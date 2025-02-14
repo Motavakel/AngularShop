@@ -6,24 +6,20 @@ namespace Domain.Entities.Order;
 
 public class Order : BaseAuditableEntity
 {
+
     public string BuyerPhoneNumber { get; set; }
-
-    public decimal SubTotal { get; set; }
-
-    //order status
-    public OrderStatus OrderStatus { get; set; } = OrderStatus.Pending;
+    public string InvoiceNumber { get; set; }
+    public int SubTotal { get; set; }
+    public DateTime? PaymentDate { get; set; }
+    public string Authority { get; set; }
     public string TrackingCode { get; set; }
+    public long TransactionId { get; set; }
 
-    //portal
-    public Portal Portal { get; set; }
-    public PortalType PortalType { get; set; } = PortalType.Zarrinpal;
-    public bool IsFinally { get; set; } = false; // default is false after order change to true or false
-    public string Authority { get; set; } 
 
-    public decimal GetOriginalTotal()
-    {
-        return SubTotal + DeliveryMethod.Price;
-    }
+    public OrderStatus OrderStatus { get; set; } = OrderStatus.Pending;
+    public PortalType PortalType { get; set; } = PortalType.Novino;
+    public bool IsFinally { get; set; } = false; 
+
 
     public List<OrderItem> OrderItems { get; set; } = new();
     public ShipToAddress ShipToAddress { get; set; }

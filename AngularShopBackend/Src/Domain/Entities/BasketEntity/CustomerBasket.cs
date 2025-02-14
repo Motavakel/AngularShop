@@ -10,7 +10,7 @@ public class CustomerBasket
     public string Id { get; set; }
     public List<CustomerBasketItem> Items { get; set; } = new();
 
-    public decimal CalculateOriginalPrice()
+    public int CalculateOriginalPrice()
     {
         return Items.Sum(x => x.Price * x.Quantity);
     }

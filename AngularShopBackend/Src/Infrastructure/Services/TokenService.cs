@@ -26,6 +26,7 @@ public class TokenService : ITokenService
 
     public async Task<string> CreateToken(User user)
     {
+
         if (user.PhoneNumber == null) return null;
         //create claims
         var claims = new List<Claim>

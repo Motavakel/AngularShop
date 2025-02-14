@@ -6,7 +6,7 @@ namespace Domain.Entities.ProductEntity;
 public class Product : BaseAuditableEntity, ICommands
 {
     public string Title { get; set; }
-    public decimal Price { get; set; }
+    public int Price { get; set; }
     public string PictureUrl { get; set; }
     public int ProductTypeId { get; set; }
     public int ProductBrandId { get; set; }

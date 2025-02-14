@@ -18,7 +18,8 @@ public class OrderController : BaseApiController
     public async Task<ActionResult<OrderDto>> CreateOrder([FromBody] CreateOrderCommand request,
         CancellationToken cancellationToken)
     {
-        return Ok(await Mediator.Send(request, cancellationToken));
+        var result = await Mediator.Send(request, cancellationToken);
+        return result is null ? NotFound() : Ok(new { paymentUrl = result });
     }
 
     [HttpGet("GetOrdersForUser")]
@@ -49,10 +50,12 @@ public class OrderController : BaseApiController
         return Ok(await Mediator.Send(new GetDeliveryMethodByIdQuery(id), cancellationToken));
     }
 
-    [HttpGet("verify")]
-    [AllowAnonymous]
-    public async Task<IActionResult> Verify(string authority, string status, CancellationToken cancellationToken)
+
+    [HttpPost]
+    [Route("Verify")]
+    public async Task<IActionResult> VerifyNovinoPayment([FromBody] VerifyCommand command)
     {
-        return Redirect(await Mediator.Send(new VerifyCommand(authority, status), cancellationToken));
+        return Ok(await Mediator.Send(command));
     }
+
 }
